@@ -1,0 +1,8 @@
+<resources>
+    <dimen name="main_margin">16dp</dimen>
+    <dimen name="half_margin">8dp</dimen>
+    <dimen name="widget_padding">8dp</dimen>
+    <dimen name="description_padding">8dp</dimen>
+    <dimen name="title_size">16sp</dimen>
+    <dimen name="widget_text">16sp</dimen>
+</resources>

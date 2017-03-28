@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">SunWidget</string>
+    <string name="title_activity_main">SunWidget</string>
+
+    <string name="sunrise">Sunrise: </string>
+    <string name="sunset">Sunset: </string>
+    <string name="not_available">Not Available</string>
+    <string name="no_location">Set your location.</string>
+    <string name="permissions_dialog_title">Permissions</string>
+    <string name="permissions_dialog_message">Do you want to use maps and your gps to set your location (requires additional permissions)?</string>
+    <string name="permissions_dialog_button">Yes</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="permissions_dialog_button_no">No</string>
+    <string name="permission_denied">Permissions denied. Please use manual entry for your location.</string>
+    <string name="save_button">Save Location</string>
+    <string name="title">Enter Your Location</string>
+    <string name="location_explanation">Your location is required for accurate sunrise and
+        sunset times.
+    </string>
+    <string name="empty_dialog_title">Warning</string>
+    <string name="empty_dialog_message">Latitude or longitude values cannot be empty.</string>
+    <string name="empty_dialog_button">OK</string>
+    <string name="attribution">Data from <a href="http://sunrise-sunset.org">sunrise-sunset.org</a></string>
+    <string name="map_attribution">Maps by <a href="http://openstreetmap.org">OpenStreetMap.org</a></string>
+    <string name="enter_location_hint">Enter Location</string>
+    <string name="search_button">Search</string>
+    <string name="title_main">Choose Your Location</string>
+    <string name="location_unavailable">Location is not available. Choose your location manually on the map.</string>
+    <string name="current_location">Current Location</string>
+    <string name="coordinates_saved">Location has been saved.</string>
+</resources>
