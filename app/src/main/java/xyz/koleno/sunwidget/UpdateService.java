@@ -35,14 +35,16 @@ public class UpdateService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // get everything necessary from the bundle
-        manager = AppWidgetManager.getInstance(this.getApplicationContext());
-        widgetIds = intent.getIntArrayExtra("widgetIds");
-        longitude = intent.getFloatExtra("longitude", 0.0f);
-        latitude = intent.getFloatExtra("latitude", 0.0f);
+        if(intent != null && intent.getExtras() != null) {
+            // get everything necessary from the bundle
+            manager = AppWidgetManager.getInstance(this.getApplicationContext());
+            widgetIds = intent.getIntArrayExtra("widgetIds");
+            longitude = intent.getFloatExtra("longitude", 0.0f);
+            latitude = intent.getFloatExtra("latitude", 0.0f);
 
-        // start background task
-        new ClientTask().execute();
+            // start background task
+            new ClientTask().execute();
+        }
 
         return START_STICKY;
     }
