@@ -4,3 +4,5 @@
 build/
 gradle/
 gradlew*
+.DS_Store
+app-release.apk
