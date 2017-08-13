@@ -2,15 +2,35 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryDark">@color/color_primary_dark</item>
+        <item name="colorAccent">@color/color_accent</item>
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
     </style>
 
-
-
     <style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+    </style>
+
+    <!-- Style for texts in the widget -->
+    <style name="StyleTextWidget">
+        <item name="android:textSize">@dimen/text_size_widget</item>
+        <item name="android:textColor">@color/color_text</item>
+    </style>
+
+    <!-- Style for location button in the map -->
+    <style name="StyleButtonLocation">
+        <item name="android:background">@drawable/button_location_background</item>
+        <item name="android:layout_margin">@dimen/margin_button_location</item>
+        <item name="android:padding">@dimen/padding_button_location</item>
+    </style>
+
+    <!-- Style for the save button -->
+    <style name="StyleButtonSave">
+        <item name="android:background">@drawable/button_location_background</item>
+        <item name="android:layout_margin">@dimen/margin_button_save</item>
+        <item name="android:padding">@dimen/padding_button_save</item>
+        <item name="android:textSize">@dimen/text_size_button_save</item>
+        <item name="android:minHeight">0dp</item>
     </style>
 
 </resources>

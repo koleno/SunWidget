@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:layout_margin="@dimen/main_margin">
+    android:layout_margin="@dimen/margin_main">
 
 
     <LinearLayout
@@ -14,35 +14,35 @@
 
 
             <TextView
-                android:id="@+id/titleTextView"
+                android:id="@+id/text_title_main_min"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="@string/title"
-                android:textSize="@dimen/title_size"
+                android:textSize="@dimen/text_size_title"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/latitudeTextView"
+                android:id="@+id/text_latitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/latitude" />
 
             <EditText
-                android:id="@+id/latitudeEditText"
+                android:id="@+id/edit_text_latitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="numberDecimal|numberSigned" />
 
             <TextView
-                android:id="@+id/longitudeTextView"
+                android:id="@+id/text_longitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/longitude" />
 
             <EditText
-                android:id="@+id/longitudeEditText"
+                android:id="@+id/edit_text_longitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
@@ -55,14 +55,14 @@
                 android:text="@string/save_button" />
 
             <TextView
-                android:id="@+id/location_explanation"
+                android:id="@+id/text_location_explanation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/location_explanation" />
 
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/text_data_source"
             android:autoLink="web"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

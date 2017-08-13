@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">SunWidget</string>
     <string name="title_activity_main">SunWidget</string>
-
     <string name="sunrise">Sunrise: </string>
     <string name="sunset">Sunset: </string>
     <string name="not_available">Not Available</string>
@@ -21,12 +20,16 @@
     <string name="empty_dialog_title">Warning</string>
     <string name="empty_dialog_message">Latitude or longitude values cannot be empty.</string>
     <string name="empty_dialog_button">OK</string>
-    <string name="attribution">Data from <a href="http://sunrise-sunset.org">sunrise-sunset.org</a></string>
-    <string name="map_attribution">Maps by <a href="http://openstreetmap.org">OpenStreetMap.org</a></string>
+    <string name="attribution">Data\u00A0from <a href="http://sunrise-sunset.org">sunrise\u2011sunset.org</a></string>
+    <string name="map_attribution">Maps\u00A0by <a href="http://openstreetmap.org">OpenStreetMap.org</a></string>
     <string name="enter_location_hint">Enter Location</string>
     <string name="search_button">Search</string>
     <string name="title_main">Choose Your Location</string>
     <string name="location_unavailable">Location is not available. Choose your location manually on the map.</string>
     <string name="current_location">Current Location</string>
     <string name="coordinates_saved">Location has been saved.</string>
+    <string name="location_enable">Location not available. Enable location services.</string>
+    <string name="success_dialog_title">Your location has been saved!</string>
+    <string name="success_dialog_message">This location will be used for all \'SunWidget\' widgets on your home screen.</string>
+    <string name="success_dialog_button">OK</string>
 </resources>

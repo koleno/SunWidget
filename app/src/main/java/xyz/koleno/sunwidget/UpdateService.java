@@ -68,8 +68,8 @@ public class UpdateService extends Service {
                 // format for the widget display
                 DateFormat outputFormat = new SimpleDateFormat("HH:mm");
 
-                rv.setTextViewText(R.id.sunriseTimeTextView, outputFormat.format(sunrise));
-                rv.setTextViewText(R.id.sunsetTimeTextView, outputFormat.format(sunset));
+                rv.setTextViewText(R.id.text_sunrise_value, outputFormat.format(sunrise));
+                rv.setTextViewText(R.id.text_sunset_value, outputFormat.format(sunset));
 
                 manager.updateAppWidget(widgetId, rv);
             }
