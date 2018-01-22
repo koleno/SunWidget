@@ -3,23 +3,20 @@ package xyz.koleno.sunwidget
 import android.app.Service
 import android.appwidget.AppWidgetManager
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.IBinder
 import android.widget.RemoteViews
-
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import org.json.JSONException
 import org.json.JSONObject
-
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import java.text.DateFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 /**
  * Service that updates the widgets
@@ -30,8 +27,8 @@ class UpdateService : Service() {
 
     private lateinit var widgetIds: IntArray
     private lateinit var manager: AppWidgetManager
-    private var longitude: Float = 0.0f
-    private var latitude: Float = 0.0f
+    var longitude: Float = 0.0f
+    var latitude: Float = 0.0f
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null && intent.extras != null) {
@@ -42,7 +39,7 @@ class UpdateService : Service() {
             latitude = intent.getFloatExtra("latitude", latitude)
 
             // start background task
-            ClientTask().execute()
+            backgroundDownload()
         }
 
         return Service.START_STICKY
@@ -73,10 +70,8 @@ class UpdateService : Service() {
                 manager.updateAppWidget(widgetId, rv)
             }
 
-        } catch (e: ParseException) {
-            // do nothing on json exception, widgets will be updated next time the json string is received correctly
-        } catch (e: JSONException) {
-        }
+        } catch (e: ParseException) { }
+        catch (e: JSONException) { }
 
         stopSelf() // stop the service until next schedule update
     }
@@ -88,11 +83,9 @@ class UpdateService : Service() {
     /**
      * Background task for downloading the json from sunrise-sunset.org API
      */
-    private inner class ClientTask : AsyncTask<Void, Void, JSONObject>() {
-        override fun doInBackground(vararg voids: Void): JSONObject? {
-
+    private fun backgroundDownload() {
+        doAsync() {
             val response = StringBuilder()
-            var json: JSONObject? = null
 
             try {
                 val url = URL("http://api.sunrise-sunset.org/json?lat=$latitude&lng=$longitude&formatted=0")
@@ -108,24 +101,14 @@ class UpdateService : Service() {
                     }
                     reader.close()
                 }
+            } catch (e: IOException) {}
 
-                json = JSONObject(response.toString())
-
-            } catch (e: JSONException) {
-                return null // return nothing on error
-            } catch (e: IOException) {
-                return null
-            }
-
-            return json
-        }
-
-        override fun onPostExecute(json: JSONObject?) {
-            if (json != null) { // update widgets when json was received
-                updateWidgets(json)
+            uiThread {
+                try {
+                    val json = JSONObject(response.toString())
+                    updateWidgets(json)
+                } catch (e: JSONException) {}
             }
         }
-
     }
-
 }
