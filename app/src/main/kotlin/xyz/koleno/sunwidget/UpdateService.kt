@@ -1,20 +1,15 @@
 package xyz.koleno.sunwidget
 
-import android.app.Service
 import android.appwidget.AppWidgetManager
+import android.content.Context
 import android.content.Intent
-import android.os.IBinder
+import android.support.v4.app.JobIntentService
 import android.widget.RemoteViews
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,26 +18,36 @@ import java.util.*
  *
  * @author Dusan Koleno
  */
-class UpdateService : Service() {
+class UpdateService : JobIntentService() {
 
     private lateinit var widgetIds: IntArray
     private lateinit var manager: AppWidgetManager
     var longitude: Float = 0.0f
     var latitude: Float = 0.0f
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent != null && intent.extras != null) {
+    /**
+     * Convenience method for enqueuing work in to this service.
+     */
+    companion object {
+        fun enqueueWork(context: Context, work: Intent) {
+            enqueueWork(context, UpdateService::class.java, 1000, work)
+        }
+    }
+
+    override fun onHandleWork(intent: Intent) {
+        if (intent.extras != null) {
             // get everything necessary from the bundle
             manager = AppWidgetManager.getInstance(this.applicationContext)
             widgetIds = intent.getIntArrayExtra("widgetIds")
             longitude = intent.getFloatExtra("longitude", longitude)
             latitude = intent.getFloatExtra("latitude", latitude)
 
-            // start background task
-            backgroundDownload()
-        }
+            // start download
+            val json = download()
 
-        return Service.START_STICKY
+            // update widgets
+            updateWidgets(json)
+        }
     }
 
     /**
@@ -70,45 +75,37 @@ class UpdateService : Service() {
                 manager.updateAppWidget(widgetId, rv)
             }
 
-        } catch (e: ParseException) { }
-        catch (e: JSONException) { }
-
-        stopSelf() // stop the service until next schedule update
-    }
-
-    override fun onBind(intent: Intent): IBinder? {
-        return null
+        } catch (e: Exception) {
+            // ignore, parse error, will try next time
+        }
     }
 
     /**
-     * Background task for downloading the json from sunrise-sunset.org API
+     * Downloads data from sunrise-sunset.org API
      */
-    private fun backgroundDownload() {
-        doAsync() {
-            val response = StringBuilder()
+    private fun download() : JSONObject {
+        val response = StringBuilder()
 
-            try {
-                val url = URL("http://api.sunrise-sunset.org/json?lat=$latitude&lng=$longitude&formatted=0")
-                val connection = url.openConnection() as HttpURLConnection
+        try {
+            val url = URL("http://api.sunrise-sunset.org/json?lat=$latitude&lng=$longitude&formatted=0")
+            val connection = url.openConnection() as HttpURLConnection
 
-                val responseCode = connection.responseCode
+            val responseCode = connection.responseCode
 
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    // read the json
-                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                    reader.forEachLine {
-                        response.append(it + "\n")
-                    }
-                    reader.close()
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // read the json
+                val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                reader.forEachLine {
+                    response.append(it + "\n")
                 }
-            } catch (e: IOException) {}
+                reader.close()
 
-            uiThread {
-                try {
-                    val json = JSONObject(response.toString())
-                    updateWidgets(json)
-                } catch (e: JSONException) {}
+                return JSONObject(response.toString())
             }
+        } catch (e: Exception) {
+            // ignore, will try next time
         }
+
+        return JSONObject()
     }
 }

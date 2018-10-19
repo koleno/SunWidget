@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.widget.RemoteViews
@@ -36,7 +35,7 @@ class SunWidgetProvider : AppWidgetProvider() {
             intent.putExtras(bundle)
 
             // start the update service
-            context.startService(intent)
+            UpdateService.enqueueWork(context, intent)
         } else {
             coordsNotAvailable(context, appWidgetIds)
         }
