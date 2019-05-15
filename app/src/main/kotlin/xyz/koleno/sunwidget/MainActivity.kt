@@ -23,7 +23,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 
 /**
@@ -39,7 +41,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
         locMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
         map = findViewById<View>(R.id.map) as MapView
         map.setMultiTouchControls(true) // zoom with fingers
-        map.setBuiltInZoomControls(true) // zoom with buttons
+        map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.SHOW_AND_FADEOUT) // zoom with buttons
         map.isTilesScaledToDpi = true
         setMapZoom(ZOOM_DEFAULT)
 
@@ -118,6 +120,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             // display last known location right away
             if (lastKnownLocation != null) {
                 setMapCenter(lastKnownLocation)
+                setMapZoom(ZOOM_DEFAULT)
             }
         }
     }
@@ -147,7 +150,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
      *
      * @param zoom
      */
-    fun setMapZoom(zoom: Int) {
+    fun setMapZoom(zoom: Double) {
         map.controller.setZoom(zoom)
     }
 
@@ -174,7 +177,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             if (longitudeEditText.text.toString().isEmpty() || latitudeEditText.text.toString().isEmpty()) {
                 showEmptyDialog()
             } else {
-                saveCoordinates(java.lang.Float.valueOf(latitudeEditText.text.toString())!!, java.lang.Float.valueOf(longitudeEditText.text.toString())!!)
+                saveCoordinates(java.lang.Float.valueOf(latitudeEditText.text.toString()), java.lang.Float.valueOf(longitudeEditText.text.toString()))
             }
         }
     }
@@ -248,8 +251,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
         AlertDialog.Builder(this)
                 .setTitle(R.string.permissions_dialog_title)
                 .setMessage(R.string.permissions_dialog_message)
-                .setPositiveButton(R.string.permissions_dialog_button) { dialogInterface, i -> ActivityCompat.requestPermissions(this@MainActivity, permissions, PERMISSIONS) }
-                .setNegativeButton(R.string.permissions_dialog_button_no) { dialogInterface, i -> loadMinContent() }
+                .setPositiveButton(R.string.permissions_dialog_button) { _, _ -> ActivityCompat.requestPermissions(this@MainActivity, permissions, PERMISSIONS) }
+                .setNegativeButton(R.string.permissions_dialog_button_no) { _, _ -> loadMinContent() }
                 .show()
     }
 
@@ -305,6 +308,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     override fun onLocationChanged(location: Location) {
         setMapCenter(location)
+        setMapZoom(ZOOM_DEFAULT)
         locMgr.removeUpdates(this)
         stopButtonAnimation()
     }
@@ -319,7 +323,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
         private val PERMISSIONS = 1
 
-        private val ZOOM_DEFAULT = 13
-        private val ZOOM_NO_LOCATION = 1
+        private val ZOOM_DEFAULT = 13.0
+        private val ZOOM_NO_LOCATION = 1.5
     }
 }
