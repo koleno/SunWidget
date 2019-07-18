@@ -33,4 +33,5 @@
     <string name="success_dialog_message">This location will be used for all \'SunWidget\' widgets on your home screen.</string>
     <string name="success_dialog_button">OK</string>
     <string name="location_marker">Location marker</string>
+    <string name="refresh">Refresh</string>
 </resources>
