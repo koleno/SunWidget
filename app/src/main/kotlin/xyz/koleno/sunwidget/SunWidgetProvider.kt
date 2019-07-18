@@ -26,11 +26,9 @@ class SunWidgetProvider : AppWidgetProvider() {
         appWidgetManager.updateAppWidget(component, remoteViews)
 
         // start service if user's location is set
-        if (prefs.contains("longitude") && prefs.contains("latitude")) {
+        if (prefs.contains(MainActivity.PREFS_LONGITUDE) && prefs.contains(MainActivity.PREFS_LATITUDE)) {
             val intent = Intent(context, UpdateService::class.java)
             val bundle = Bundle()
-            bundle.putFloat("longitude", prefs.getFloat("longitude", 0.0f))
-            bundle.putFloat("latitude", prefs.getFloat("latitude", 0.0f))
             bundle.putIntArray("widgetIds", appWidgetManager.getAppWidgetIds(component))
             intent.putExtras(bundle)
 

@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
+        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
         locMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -82,8 +82,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
 
         // check preferences and load coordinates from them
-        if (prefs.contains("longitude") && prefs.contains("latitude")) {
-            setMapCenter(prefs.getFloat("latitude", 0.0f).toDouble(), prefs.getFloat("longitude", 0.0f).toDouble())
+        if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
+            setMapCenter(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toDouble(), prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toDouble())
         } else { // no preferences, load current location
             setMapCenter(0.0, 0.0)
             setMapZoom(ZOOM_NO_LOCATION)
@@ -107,12 +107,12 @@ class MainActivity : AppCompatActivity(), LocationListener {
             if (!network && !gps) {
                 Toast.makeText(this, R.string.location_enable, Toast.LENGTH_SHORT).show()
             } else {
-                if (gps) { // gps location
+                lastKnownLocation = if (gps) { // gps location
                     locMgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0f, this)
-                    lastKnownLocation = locMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    locMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 } else { // network location
                     locMgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10, 0f, this)
-                    lastKnownLocation = locMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                    locMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                 }
 
             }
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
      * Sets map to particular location
      * @param loc location
      */
-    fun setMapCenter(loc: Location?) {
+    private fun setMapCenter(loc: Location?) {
         if (loc != null) {
             setMapCenter(loc.latitude, loc.longitude)
         }
@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
      * @param latitude
      * @param longitude
      */
-    fun setMapCenter(latitude: Double, longitude: Double) {
+    private fun setMapCenter(latitude: Double, longitude: Double) {
         map.controller.setCenter(GeoPoint(latitude, longitude))
     }
 
@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
      *
      * @param zoom
      */
-    fun setMapZoom(zoom: Double) {
+    private fun setMapZoom(zoom: Double) {
         map.controller.setZoom(zoom)
     }
 
@@ -164,12 +164,12 @@ class MainActivity : AppCompatActivity(), LocationListener {
         val latitudeEditText = findViewById<View>(R.id.edit_text_latitude) as EditText
 
         // check preferences and load them
-        if (prefs.contains("longitude")) {
-            longitudeEditText.setText(prefs.getFloat("longitude", 0.0f).toString())
+        if (prefs.contains(PREFS_LONGITUDE)) {
+            longitudeEditText.setText(prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toString())
         }
 
-        if (prefs.contains("latitude")) {
-            latitudeEditText.setText(prefs.getFloat("latitude", 0.0f).toString())
+        if (prefs.contains(PREFS_LATITUDE)) {
+            latitudeEditText.setText(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toString())
         }
 
         val button = findViewById<View>(R.id.button) as Button
@@ -209,8 +209,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
     private fun saveCoordinates(latitude: Float, longitude: Float) {
         val editor = prefs.edit()
 
-        editor.putFloat("latitude", latitude)
-        editor.putFloat("longitude", longitude)
+        editor.putFloat(PREFS_LATITUDE, latitude)
+        editor.putFloat(PREFS_LONGITUDE, longitude)
         editor.apply()
 
         notifyWidgets()
@@ -275,14 +275,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
     /**
      * Starts button animation
      */
-    fun startButtonAnimation() {
+    private fun startButtonAnimation() {
         currentLocButton.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
     }
 
     /**
      * Stops button animation
      */
-    fun stopButtonAnimation() {
+    private fun stopButtonAnimation() {
         currentLocButton.clearAnimation()
     }
 
@@ -321,9 +321,19 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     companion object {
 
-        private val PERMISSIONS = 1
+        private const val PERMISSIONS = 1
 
-        private val ZOOM_DEFAULT = 13.0
-        private val ZOOM_NO_LOCATION = 1.5
+        private const val ZOOM_DEFAULT = 13.0
+        private const val ZOOM_NO_LOCATION = 1.5
+
+        const val PREFS_LONGITUDE = "longitude"
+        const val PREFS_LATITUDE = "latitude"
+        const val PREFS_SUNRISE = "sunrise"
+        const val PREFS_SUNSET = "sunset"
+
+        const val PREFS_LONGITUDE_DEFAULT = 0.0f
+        const val PREFS_LATITUDE_DEFAULT = 0.0f
+        const val PREFS_SUNRISE_DEFAULT = "2015-05-21T05:05:35+00:00"
+        const val PREFS_SUNSET_DEFAULT = "2015-05-21T19:22:59+00:00"
     }
 }
