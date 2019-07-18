@@ -4,12 +4,12 @@
     <dimen name="margin_half">8dp</dimen>
     <dimen name="margin_button_location">8dp</dimen>
     <dimen name="margin_button_save">8dp</dimen>
-    <dimen name="padding_button_location">6dp</dimen>
+    <dimen name="padding_button_location">8dp</dimen>
     <dimen name="padding_button_save">8dp</dimen>
     <dimen name="padding_widget">8dp</dimen>
     <dimen name="padding_description">8dp</dimen>
-    <dimen name="text_size_title">16sp</dimen>
+    <dimen name="text_size_title">20sp</dimen>
     <dimen name="text_size_widget">16sp</dimen>
-    <dimen name="text_size_button_save">13sp</dimen>
+    <dimen name="text_size_button_save">18sp</dimen>
     <dimen name="radius_button_location">5dp</dimen>
 </resources>

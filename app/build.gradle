@@ -6,11 +6,12 @@ android {
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "xyz.koleno.sunwidget"
-        minSdkVersion 15
+        minSdkVersion 19
         targetSdkVersion 28
         versionCode 6
         versionName "1.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
