@@ -36,7 +36,7 @@
             android:id="@+id/text_sunrise_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/not_available"
+            android:text="@string/loading"
             android:textAppearance="@style/StyleTextWidget" />
 
         <TextView
@@ -51,7 +51,7 @@
             android:id="@+id/text_sunset_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/not_available"
+            android:text="@string/loading"
             android:textAppearance="@style/StyleTextWidget" />
 
     </GridLayout>

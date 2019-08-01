@@ -34,4 +34,5 @@
     <string name="success_dialog_button">OK</string>
     <string name="location_marker">Location marker</string>
     <string name="refresh">Refresh</string>
+    <string name="loading">Loading\u2026</string>
 </resources>
