@@ -7,3 +7,4 @@ gradlew*
 .DS_Store
 app-release.apk
 local.properties
+output.json
