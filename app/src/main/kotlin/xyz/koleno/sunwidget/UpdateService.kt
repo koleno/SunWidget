@@ -4,7 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import androidx.core.app.JobIntentService
 import android.util.Log
 import android.widget.RemoteViews
