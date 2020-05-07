@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
         map = findViewById<View>(R.id.map) as MapView
         map.setMultiTouchControls(true) // zoom with fingers
-        map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.SHOW_AND_FADEOUT) // zoom with buttons
+        map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER) // zoom with buttons disabled
         map.isTilesScaledToDpi = true
         setMapZoom(ZOOM_DEFAULT)
 
