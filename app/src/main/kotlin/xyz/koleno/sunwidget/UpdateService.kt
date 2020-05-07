@@ -29,9 +29,9 @@ class UpdateService : JobIntentService() {
     private val tag = BuildConfig.APPLICATION_ID
     private val baseUrl = "https://api.sunrise-sunset.org/"
 
-    private lateinit var widgetIds: IntArray
     private lateinit var manager: AppWidgetManager
     private lateinit var prefs: SharedPreferences
+    private var widgetIds: IntArray? = null
     private var longitude: Float = 0.0f
     private var latitude: Float = 0.0f
 
@@ -56,15 +56,19 @@ class UpdateService : JobIntentService() {
             val retrofit = Retrofit.Builder().baseUrl(baseUrl).addConverterFactory(GsonConverterFactory.create()).build()
             val call = retrofit.create(DataService::class.java).getTimes(latitude, longitude)
 
-            call.enqueue(object: Callback<xyz.koleno.sunwidget.api.json.ApiResponse>{
-                override fun onFailure(call: Call<xyz.koleno.sunwidget.api.json.ApiResponse>, t: Throwable) {
+            call.enqueue(object : Callback<ApiResponse> {
+                override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
                     loadCache()
                     Log.d(tag, "Failed to retrieve data from API", t)
                 }
 
-                override fun onResponse(call: Call<xyz.koleno.sunwidget.api.json.ApiResponse>, response: Response<ApiResponse>) {
-                    if(response.code() == 200 && response.body()?.status.equals("OK")) {
+                override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+                    if (response.code() == 200 && response.body()?.status.equals("OK")) {
                         response.body()?.results?.let {
+                            if (it.sunrise == null || it.sunset == null) {
+                                return
+                            }
+
                             cacheData(it.sunrise, it.sunset)
                             updateWidgets(it.sunrise, it.sunset)
                             Log.i(tag, "API data retrieved, updating widgets")
@@ -85,25 +89,29 @@ class UpdateService : JobIntentService() {
      * @param sunrise sunrise time
      * @param sunset sunset time
      */
-    private fun updateWidgets(sunrise: String?, sunset: String?) {
-        for (widgetId in widgetIds) {
-            val rv = RemoteViews(this.applicationContext.packageName, R.layout.sunwidget)
+    private fun updateWidgets(sunrise: String, sunset: String) {
+        widgetIds?.let {
+            for (widgetId in it) {
+                val rv = RemoteViews(this.applicationContext.packageName, R.layout.sunwidget)
 
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH)
-            val sunriseTime = dateFormat.parse(sunrise)
-            val sunsetTime = dateFormat.parse(sunset)
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH)
+                val sunriseTime = dateFormat.parse(sunrise)
+                val sunsetTime = dateFormat.parse(sunset)
 
-            // format for the widget display
-            val outputFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
+                if (sunriseTime != null && sunsetTime != null) {
+                    // format for the widget display
+                    val outputFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT)
 
-            rv.setTextViewText(R.id.text_sunrise_value, outputFormat.format(sunriseTime))
-            rv.setTextViewText(R.id.text_sunset_value, outputFormat.format(sunsetTime))
+                    rv.setTextViewText(R.id.text_sunrise_value, outputFormat.format(sunriseTime))
+                    rv.setTextViewText(R.id.text_sunset_value, outputFormat.format(sunsetTime))
 
-            manager.updateAppWidget(widgetId, rv)
+                    manager.updateAppWidget(widgetId, rv)
+                }
+            }
         }
     }
 
-    private fun cacheData(sunrise: String?, sunset: String?) {
+    private fun cacheData(sunrise: String, sunset: String) {
         val editor = prefs.edit()
 
         editor.putString(MainActivity.PREFS_SUNRISE, sunrise)
@@ -112,11 +120,12 @@ class UpdateService : JobIntentService() {
     }
 
     private fun loadCache() {
-        if(prefs.contains(MainActivity.PREFS_SUNRISE) && prefs.contains(MainActivity.PREFS_SUNSET)) {
+        if (prefs.contains(MainActivity.PREFS_SUNRISE) && prefs.contains(MainActivity.PREFS_SUNSET)) {
             val sunrise = prefs.getString(MainActivity.PREFS_SUNRISE, MainActivity.PREFS_SUNRISE_DEFAULT)
             val sunset = prefs.getString(MainActivity.PREFS_SUNSET, MainActivity.PREFS_SUNSET_DEFAULT)
 
-            updateWidgets(sunrise, sunset)
+            if (sunrise != null && sunset != null)
+                updateWidgets(sunrise, sunset)
         }
     }
 }
