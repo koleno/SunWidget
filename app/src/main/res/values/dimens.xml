@@ -1,9 +1,8 @@
 <resources>
     <dimen name="margin_main">16dp</dimen>
-    <dimen name="margin_main_land">8dp</dimen>
+    <dimen name="padding_main">8dp</dimen>
     <dimen name="margin_half">8dp</dimen>
-    <dimen name="margin_button_location">8dp</dimen>
-    <dimen name="margin_button_save">8dp</dimen>
+    <dimen name="margin_button">8dp</dimen>
     <dimen name="padding_button_location">8dp</dimen>
     <dimen name="padding_button_save">8dp</dimen>
     <dimen name="padding_widget">8dp</dimen>

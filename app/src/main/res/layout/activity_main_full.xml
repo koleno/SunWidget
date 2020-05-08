@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:background="@color/color_label_background"
         android:gravity="center"
-        android:padding="@dimen/margin_main_land"
+        android:padding="@dimen/padding_main"
         android:text="@string/title_main"
         android:textSize="@dimen/text_size_title"
         android:textStyle="bold"
@@ -29,18 +29,19 @@
 
     <Button
         android:id="@+id/button_save"
-        style="@style/StyleButtonSave"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="8dp"
         android:text="@string/save_button"
         app:layout_constraintBottom_toTopOf="@id/text_data_source"
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageButton
         android:id="@+id/button_location"
-        style="@style/StyleButtonLocation"
+        style="@style/SWLocationButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_button"
         android:contentDescription="@string/current_location"
         android:src="@drawable/ic_my_location"
         android:text="@string/current_location"
@@ -70,7 +71,7 @@
         android:autoLink="web"
         android:background="@color/color_label_background"
         android:gravity="bottom|start"
-        android:padding="@dimen/margin_main_land"
+        android:padding="@dimen/padding_main"
         android:text="@string/attribution"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/text_maps_source"
@@ -83,7 +84,7 @@
         android:autoLink="web"
         android:background="@color/color_label_background"
         android:gravity="bottom|end"
-        android:padding="@dimen/margin_main_land"
+        android:padding="@dimen/padding_main"
         android:text="@string/map_attribution"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
