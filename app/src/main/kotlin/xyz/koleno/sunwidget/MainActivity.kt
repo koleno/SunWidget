@@ -12,21 +12,18 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import androidx.preference.PreferenceManager
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import android.view.View
-import android.view.animation.AnimationUtils
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
+import kotlinx.android.synthetic.main.activity_main_full.*
+import kotlinx.android.synthetic.main.activity_main_min.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
-import org.osmdroid.views.MapView
 
 /**
  * Main activity
@@ -35,8 +32,6 @@ import org.osmdroid.views.MapView
 class MainActivity : AppCompatActivity(), LocationListener {
 
     private lateinit var prefs: SharedPreferences
-    private lateinit var map: MapView
-    private lateinit var currentLocButton: ImageButton
     private lateinit var locMgr: LocationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,17 +61,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
     private fun loadFullContent() {
         setContentView(R.layout.activity_main_full)
 
-        map = findViewById<View>(R.id.map) as MapView
         map.setMultiTouchControls(true) // zoom with fingers
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER) // zoom with buttons disabled
         map.isTilesScaledToDpi = true
         map.controller.setZoom(ZOOM_DEFAULT)
 
-        currentLocButton = findViewById<View>(R.id.button_location) as ImageButton
-        currentLocButton.setOnClickListener { locationButtonClicked() }
+        button_location.setOnClickListener { locationButtonClicked() }
 
-        val saveButton = findViewById<View>(R.id.button_save) as Button
-        saveButton.setOnClickListener {
+        button_save.setOnClickListener {
             val center = map.mapCenter as GeoPoint
             saveCoordinates(center.latitude.toFloat(), center.longitude.toFloat())
         }
@@ -94,7 +86,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
      * Toggles location updates
      */
     private fun locationButtonClicked() {
-        if (currentLocButton.animation != null) { /// button is animated and hence location is being updated
+        if (button_location.animation != null) { /// button is animated and hence location is being updated
             stopLocation()
         } else {
             setLocation()
@@ -169,24 +161,20 @@ class MainActivity : AppCompatActivity(), LocationListener {
     private fun loadMinContent() {
         setContentView(R.layout.activity_main_min)
 
-        val longitudeEditText = findViewById<View>(R.id.edit_text_longitude) as EditText
-        val latitudeEditText = findViewById<View>(R.id.edit_text_latitude) as EditText
-
         // check preferences and load them
         if (prefs.contains(PREFS_LONGITUDE)) {
-            longitudeEditText.setText(prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toString())
+            edit_text_longitude.setText(prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toString())
         }
 
         if (prefs.contains(PREFS_LATITUDE)) {
-            latitudeEditText.setText(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toString())
+            edit_text_latitude.setText(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toString())
         }
 
-        val button = findViewById<View>(R.id.button) as Button
         button.setOnClickListener {
-            if (longitudeEditText.text.toString().isEmpty() || latitudeEditText.text.toString().isEmpty()) {
+            if (edit_text_longitude.text.toString().isEmpty() || edit_text_latitude.text.toString().isEmpty()) {
                 showEmptyDialog()
             } else {
-                saveCoordinates(java.lang.Float.valueOf(latitudeEditText.text.toString()), java.lang.Float.valueOf(longitudeEditText.text.toString()))
+                saveCoordinates(java.lang.Float.valueOf(edit_text_latitude.text.toString()), java.lang.Float.valueOf(edit_text_longitude.text.toString()))
             }
         }
     }
@@ -285,14 +273,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
      * Starts button animation
      */
     private fun startButtonAnimation() {
-        currentLocButton.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
+        button_location.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
     }
 
     /**
      * Stops button animation
      */
     private fun stopButtonAnimation() {
-        currentLocButton.clearAnimation()
+        button_location.clearAnimation()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
