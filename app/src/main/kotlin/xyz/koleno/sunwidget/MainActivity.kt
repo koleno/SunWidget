@@ -87,6 +87,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
         } else { // no preferences, load current location
             setMapCenter(0.0, 0.0)
             setMapZoom(ZOOM_NO_LOCATION)
+            setLocation()
         }
     }
 
