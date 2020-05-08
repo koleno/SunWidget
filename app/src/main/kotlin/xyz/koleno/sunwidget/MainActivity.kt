@@ -12,6 +12,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -19,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main_full.*
 import kotlinx.android.synthetic.main.activity_main_min.*
 import org.osmdroid.config.Configuration
@@ -36,11 +38,16 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
         Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
         locMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
         loadContentForPermissions()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocation()
     }
 
     /**
@@ -59,7 +66,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
      * Loads map and other content in case the permissions are OK
      */
     private fun loadFullContent() {
-        setContentView(R.layout.activity_main_full)
+        fullLayout.visibility = View.VISIBLE
+        minLayout.visibility = View.GONE
 
         map.setMultiTouchControls(true) // zoom with fingers
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER) // zoom with buttons disabled
@@ -159,7 +167,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
      * Loads simple input fields for the coordinates
      */
     private fun loadMinContent() {
-        setContentView(R.layout.activity_main_min)
+        fullLayout.visibility = View.GONE
+        minLayout.visibility = View.VISIBLE
 
         // check preferences and load them
         if (prefs.contains(PREFS_LONGITUDE)) {
