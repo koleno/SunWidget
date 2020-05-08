@@ -70,10 +70,10 @@ class MainActivity : AppCompatActivity(), LocationListener {
         map.setMultiTouchControls(true) // zoom with fingers
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER) // zoom with buttons disabled
         map.isTilesScaledToDpi = true
-        setMapZoom(ZOOM_DEFAULT)
+        map.controller.setZoom(ZOOM_DEFAULT)
 
         currentLocButton = findViewById<View>(R.id.button_location) as ImageButton
-        currentLocButton.setOnClickListener { setLocation() }
+        currentLocButton.setOnClickListener { locationButtonClicked() }
 
         val saveButton = findViewById<View>(R.id.button_save) as Button
         saveButton.setOnClickListener {
@@ -86,7 +86,17 @@ class MainActivity : AppCompatActivity(), LocationListener {
             setMapCenter(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toDouble(), prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toDouble())
         } else { // no preferences, load current location
             setMapCenter(0.0, 0.0)
-            setMapZoom(ZOOM_NO_LOCATION)
+            setLocation()
+        }
+    }
+
+    /**
+     * Toggles location updates
+     */
+    private fun locationButtonClicked() {
+        if (currentLocButton.animation != null) { /// button is animated and hence location is being updated
+            stopLocation()
+        } else {
             setLocation()
         }
     }
@@ -121,9 +131,16 @@ class MainActivity : AppCompatActivity(), LocationListener {
             // display last known location right away
             if (lastKnownLocation != null) {
                 setMapCenter(lastKnownLocation)
-                setMapZoom(ZOOM_DEFAULT)
             }
         }
+    }
+
+    /**
+     * Stops location updates
+     */
+    private fun stopLocation() {
+        locMgr.removeUpdates(this)
+        stopButtonAnimation()
     }
 
     /**
@@ -144,15 +161,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
      */
     private fun setMapCenter(latitude: Double, longitude: Double) {
         map.controller.setCenter(GeoPoint(latitude, longitude))
-    }
-
-    /**
-     * Sets zoom
-     *
-     * @param zoom
-     */
-    private fun setMapZoom(zoom: Double) {
-        map.controller.setZoom(zoom)
     }
 
     /**
@@ -309,9 +317,10 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     override fun onLocationChanged(location: Location) {
         setMapCenter(location)
-        setMapZoom(ZOOM_DEFAULT)
-        locMgr.removeUpdates(this)
-        stopButtonAnimation()
+
+        if (location.accuracy < LOCATION_ACCURACY) {
+            stopLocation()
+        }
     }
 
     override fun onStatusChanged(s: String, i: Int, bundle: Bundle) {}
@@ -325,7 +334,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
         private const val PERMISSIONS = 1
 
         private const val ZOOM_DEFAULT = 13.0
-        private const val ZOOM_NO_LOCATION = 1.5
+        private const val LOCATION_ACCURACY = 10f
 
         const val PREFS_LONGITUDE = "longitude"
         const val PREFS_LATITUDE = "latitude"
