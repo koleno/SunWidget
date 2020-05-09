@@ -46,7 +46,7 @@ class SunWidgetProvider : AppWidgetProvider() {
 
         when (intent.action) {
             ACTION_NO_CONNECTION -> {
-                updateWidgets(context, widgetIds, context.getString(R.string.no_internet), context.getString(R.string.no_internet))
+                updateWidgets(context, widgetIds, context.getString(R.string.no_internet), context.getString(R.string.no_internet_try))
             }
             ACTION_UPDATE_WIDGETS -> {
                 updateWidgetsFromSaved(context, widgetIds)
