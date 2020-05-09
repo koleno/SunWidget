@@ -10,7 +10,6 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -20,7 +19,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main_full.*
 import kotlinx.android.synthetic.main.activity_main_min.*
 import org.osmdroid.config.Configuration
@@ -39,7 +37,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
 
         viewModel.action.observe(this, Observer { action ->
@@ -90,7 +87,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.location.observe(this, Observer {
             it?.let {
-                if (fullLayout.visibility == View.VISIBLE) {
+                if (map != null) {
                     map.controller.setCenter(GeoPoint(it.latitude, it.longitude))
                 } else {
                     edit_text_longitude.setText(it.longitude.toString())
@@ -126,10 +123,9 @@ class MainActivity : AppCompatActivity() {
      * Loads map and other content in case the permissions are OK
      */
     private fun loadFullContent() {
+        setContentView(R.layout.activity_main_full)
         Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
 
-        fullLayout.visibility = View.VISIBLE
-        minLayout.visibility = View.GONE
         menu?.findItem(R.id.useMap)?.isVisible = false
 
         map.setMultiTouchControls(true) // zoom with fingers
@@ -149,8 +145,7 @@ class MainActivity : AppCompatActivity() {
      * Loads simple input fields for the coordinates
      */
     private fun loadMinContent() {
-        fullLayout.visibility = View.GONE
-        minLayout.visibility = View.VISIBLE
+        setContentView(R.layout.activity_main_min)
         menu?.findItem(R.id.useMap)?.isVisible = true
 
         button.setOnClickListener {
@@ -163,14 +158,14 @@ class MainActivity : AppCompatActivity() {
      * Starts button animation
      */
     private fun startButtonAnimation() {
-        button_location.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
+        button_location?.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
     }
 
     /**
      * Stops button animation
      */
     private fun stopButtonAnimation() {
-        button_location.clearAnimation()
+        button_location?.clearAnimation()
     }
 
     /**
