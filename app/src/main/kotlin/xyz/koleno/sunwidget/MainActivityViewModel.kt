@@ -34,30 +34,29 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         this.openedFromWidget = openedFromWidget
 
         if (!permGranted) {
-            if (!permissionRequested) {
+            if (!permissionRequested) { // ask for permissions
                 action.postValue(Action.REQUEST_PERM)
                 permissionRequested = true
-            } else {
+            } else { // permissions where not granted by user
                 action.postValue(Action.LOAD_MIN_CONTENT)
                 message.postValue(resources.getString(R.string.permission_denied))
                 location.postValue(getStoredLocation())
             }
-        } else {
+        } else { // permissions granted, load full content with map
             action.postValue(Action.LOAD_FULL_CONTENT)
             val stored = getStoredLocation()
             location.postValue(getStoredLocation())
 
-            // if default was loaded, try to current location
+            // if default location was loaded, try to find current location
             if (stored.latitude == PREFS_LATITUDE_DEFAULT && stored.longitude == PREFS_LONGITUDE_DEFAULT) {
-                startLocation()
+                startLocationService()
             }
         }
     }
 
-    private fun startLocation() {
-        locationActive.postValue(true)
-
+    private fun startLocationService() {
         if (!locMgr.isProviderEnabled(LocationManager.GPS_PROVIDER) && !locMgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            // no gps or network provider enabled
             message.postValue(resources.getString(R.string.location_enable))
         } else {
             try {
@@ -85,6 +84,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
 
                 // register for location updates
                 bestProvider?.let {
+                    locationActive.postValue(true)
                     locMgr.requestLocationUpdates(it, 10, 0f, this)
                 }
             } catch (e: SecurityException) {
@@ -94,6 +94,14 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    private fun stopLocationService() {
+        locMgr.removeUpdates(this)
+        locationActive.postValue(false)
+    }
+
+    /**
+     * Retrieves stored location from shared preferences or returns default
+     */
     private fun getStoredLocation(): LocationData {
         return if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
             LocationData(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT.toFloat()).toDouble(),
@@ -103,6 +111,9 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    /**
+     * Saves coordinates to shared preferences
+     */
     fun saveCoordinates(latitude: Float?, longitude: Float?) {
         if (latitude == null || longitude == null) {
             dialog.postValue(DialogData(resources.getString(R.string.empty_dialog_title), resources.getString(R.string.empty_dialog_message)))
@@ -125,35 +136,29 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
                     resources.getString(R.string.success_dialog_message)))
         }
 
-        stopLocation()
+        stopLocationService()
     }
 
     fun pause() {
-        stopLocation()
-    }
-
-    private fun stopLocation() {
-        locMgr.removeUpdates(this)
-        locationActive.postValue(false)
+        stopLocationService()
     }
 
     fun locationButtonClicked() {
         locationActive.value?.let {
             if (it) {
-                stopLocation()
+                stopLocationService()
             } else {
-                startLocation()
+                startLocationService()
             }
         }
     }
 
     override fun onLocationChanged(location: Location?) {
-        println("Koleno " + location?.accuracy)
-
         location?.let {
             this.location.postValue(LocationData(it.latitude, it.longitude))
-            if (it.accuracy < LOCATION_ACCURACY) {
-                stopLocation()
+
+            if (it.accuracy < LOCATION_ACCURACY) { // stop service if high enough accuracy is achieved
+                stopLocationService()
             }
         }
     }
