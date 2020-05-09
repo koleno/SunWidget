@@ -2,70 +2,72 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:layout_margin="@dimen/margin_main">
-
+    android:layout_margin="@dimen/margin_main"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/text_title_main_min"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_main"
+            android:gravity="center"
+            android:text="@string/title"
+            android:textSize="@dimen/text_size_title"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/text_title_main_min"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@string/title"
-                android:textSize="@dimen/text_size_title"
-                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/text_latitude"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/latitude" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_half"
+            android:hint="@string/latitude">
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_text_latitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ems="10"
                 android:inputType="numberDecimal|numberSigned" />
 
-            <TextView
-                android:id="@+id/text_longitude"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/longitude" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <EditText
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_half"
+            android:hint="@string/longitude">
+
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_text_longitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ems="10"
                 android:inputType="numberDecimal|numberSigned" />
 
-            <Button
-                android:id="@+id/button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/save_button" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/text_location_explanation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/location_explanation" />
+        <Button
+            android:id="@+id/button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_main"
+            android:text="@string/save_button" />
 
+        <TextView
+            android:id="@+id/text_location_explanation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/location_explanation" />
 
         <TextView
             android:id="@+id/text_data_source"
-            android:autoLink="web"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:autoLink="web"
             android:gravity="bottom|center"
             android:text="@string/attribution" />
     </LinearLayout>

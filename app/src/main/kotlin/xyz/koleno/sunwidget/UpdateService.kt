@@ -14,9 +14,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LATITUDE
-import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LATITUDE_DEFAULT
 import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LONGITUDE
-import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LONGITUDE_DEFAULT
 import xyz.koleno.sunwidget.api.DataService
 import xyz.koleno.sunwidget.api.json.ApiResponse
 import java.text.DateFormat
@@ -24,7 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Service that updates the widgets
+ * Service that updates widgets
  * Not using WorkManager due to https://commonsware.com/blog/2018/11/24/workmanager-app-widgets-side-effects.html
  *
  * @author Dusan Koleno
@@ -58,8 +56,8 @@ class UpdateService : JobIntentService(), Callback<ApiResponse> {
             manager = AppWidgetManager.getInstance(this.applicationContext)
             prefs = PreferenceManager.getDefaultSharedPreferences(this.applicationContext)
             widgetIds = intent.getIntArrayExtra("widgetIds")
-            longitude = prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT.toFloat())
-            latitude = prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT.toFloat())
+            longitude = prefs.getFloat(PREFS_LONGITUDE, 0f)
+            latitude = prefs.getFloat(PREFS_LATITUDE, 0f)
 
             val retrofit = Retrofit.Builder().baseUrl(baseUrl).addConverterFactory(GsonConverterFactory.create()).build()
             val call = retrofit.create(DataService::class.java).getTimes(latitude, longitude)

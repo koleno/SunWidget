@@ -8,6 +8,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
@@ -33,6 +35,7 @@ import org.osmdroid.views.CustomZoomButtonsController
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainActivityViewModel
+    private var menu: Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,15 +89,32 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.location.observe(this, Observer {
-            if (fullLayout.visibility == View.VISIBLE) {
-                map.controller.setCenter(GeoPoint(it.latitude, it.longitude))
-            } else {
-                edit_text_longitude.setText(it.longitude.toString())
-                edit_text_latitude.setText(it.latitude.toString())
+            it?.let {
+                if (fullLayout.visibility == View.VISIBLE) {
+                    map.controller.setCenter(GeoPoint(it.latitude, it.longitude))
+                } else {
+                    edit_text_longitude.setText(it.longitude.toString())
+                    edit_text_latitude.setText(it.latitude.toString())
+                }
             }
         })
 
         viewModel.init(checkWritePermission() && checkLocationPermission(), openedFromWidget())
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        this.menu = menu
+
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.useMap) {
+            viewModel.useMapClicked()
+        }
+
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onPause() {
@@ -110,6 +130,7 @@ class MainActivity : AppCompatActivity() {
 
         fullLayout.visibility = View.VISIBLE
         minLayout.visibility = View.GONE
+        menu?.findItem(R.id.useMap)?.isVisible = false
 
         map.setMultiTouchControls(true) // zoom with fingers
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER) // zoom with buttons disabled
@@ -130,6 +151,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadMinContent() {
         fullLayout.visibility = View.GONE
         minLayout.visibility = View.VISIBLE
+        menu?.findItem(R.id.useMap)?.isVisible = true
 
         button.setOnClickListener {
             viewModel.saveCoordinates(edit_text_latitude.text.toString().toFloatOrNull(), edit_text_longitude.text.toString().toFloatOrNull())

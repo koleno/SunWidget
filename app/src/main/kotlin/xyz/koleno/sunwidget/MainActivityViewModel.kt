@@ -13,6 +13,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
 
+/**
+ * View model for the main activity
+ * @author Dusan Koleno
+ */
 class MainActivityViewModel(application: Application) : AndroidViewModel(application), LocationListener {
 
     enum class Action { REQUEST_PERM, LOAD_FULL_CONTENT, LOAD_MIN_CONTENT, UPDATE_WIDGETS, UPDATE_FINISH }
@@ -35,8 +39,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
 
         if (!permGranted) {
             if (!permissionRequested) { // ask for permissions
-                action.postValue(Action.REQUEST_PERM)
-                permissionRequested = true
+                requestPermissions()
             } else { // permissions where not granted by user
                 action.postValue(Action.LOAD_MIN_CONTENT)
                 message.postValue(resources.getString(R.string.permission_denied))
@@ -47,11 +50,16 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
             val stored = getStoredLocation()
             location.postValue(getStoredLocation())
 
-            // if default location was loaded, try to find current location
-            if (stored.latitude == PREFS_LATITUDE_DEFAULT && stored.longitude == PREFS_LONGITUDE_DEFAULT) {
+            // if no location was loaded, try to find current location
+            if (stored == null) {
                 startLocationService()
             }
         }
+    }
+
+    private fun requestPermissions() {
+        action.postValue(Action.REQUEST_PERM)
+        permissionRequested = true
     }
 
     private fun startLocationService() {
@@ -88,8 +96,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
                     locMgr.requestLocationUpdates(it, 10, 0f, this)
                 }
             } catch (e: SecurityException) {
-                action.postValue(Action.REQUEST_PERM)
-                permissionRequested = true
+                requestPermissions()
             }
         }
     }
@@ -102,13 +109,13 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     /**
      * Retrieves stored location from shared preferences or returns default
      */
-    private fun getStoredLocation(): LocationData {
-        return if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
-            LocationData(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT.toFloat()).toDouble(),
-                    prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT.toFloat()).toDouble())
-        } else { // no preferences, load current location
-            LocationData(PREFS_LATITUDE_DEFAULT, PREFS_LONGITUDE_DEFAULT)
+    private fun getStoredLocation(): LocationData? {
+        if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
+            return LocationData(prefs.getFloat(PREFS_LATITUDE, 0f).toDouble(),
+                    prefs.getFloat(PREFS_LONGITUDE, 0f).toDouble())
         }
+
+        return null
     }
 
     /**
@@ -153,6 +160,10 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    fun useMapClicked() {
+        requestPermissions()
+    }
+
     override fun onLocationChanged(location: Location?) {
         location?.let {
             this.location.postValue(LocationData(it.latitude, it.longitude))
@@ -178,8 +189,6 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     companion object {
         const val PREFS_LONGITUDE = "longitude"
         const val PREFS_LATITUDE = "latitude"
-        const val PREFS_LONGITUDE_DEFAULT = 0.0
-        const val PREFS_LATITUDE_DEFAULT = 0.0
         private const val LOCATION_ACCURACY = 10f
     }
 
