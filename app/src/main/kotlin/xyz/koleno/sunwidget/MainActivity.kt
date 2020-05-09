@@ -54,10 +54,10 @@ class MainActivity : AppCompatActivity() {
                     loadMinContent()
                 }
                 MainActivityViewModel.Action.UPDATE_WIDGETS -> {
-                    notifyWidgets()
+                    updateWidgets()
                 }
                 MainActivityViewModel.Action.UPDATE_FINISH -> {
-                    notifyWidgets()
+                    updateWidgets()
 
                     val widgetId = intent.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
                     val resultValue = Intent()
@@ -174,16 +174,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Notifies widgets about new coordinates
+     * Start service for updating the widgets
      */
-    private fun notifyWidgets() {
-        val intent = Intent(this, SunWidgetProvider::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-
+    private fun updateWidgets() {
         val widgetIds = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, SunWidgetProvider::class.java))
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+        val bundle = Bundle()
+        bundle.putIntArray("widgetIds", widgetIds)
 
-        sendBroadcast(intent)
+        val intent = Intent(this, UpdateService::class.java)
+        intent.putExtras(bundle)
+        UpdateService.enqueueWork(this, intent)
     }
 
     /**
