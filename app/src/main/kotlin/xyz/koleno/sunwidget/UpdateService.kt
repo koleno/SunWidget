@@ -25,10 +25,11 @@ import java.util.*
 
 /**
  * Service that updates the widgets
+ * Not using WorkManager due to https://commonsware.com/blog/2018/11/24/workmanager-app-widgets-side-effects.html
  *
  * @author Dusan Koleno
  */
-class UpdateService : JobIntentService() {
+class UpdateService : JobIntentService(), Callback<ApiResponse> {
 
     private val tag = BuildConfig.APPLICATION_ID
     private val baseUrl = "https://api.sunrise-sunset.org/"
@@ -49,9 +50,6 @@ class UpdateService : JobIntentService() {
 
         const val PREFS_SUNRISE = "sunrise"
         const val PREFS_SUNSET = "sunset"
-
-        const val PREFS_SUNRISE_DEFAULT = "2015-05-21T05:05:35+00:00"
-        const val PREFS_SUNSET_DEFAULT = "2015-05-21T19:22:59+00:00"
     }
 
     override fun onHandleWork(intent: Intent) {
@@ -65,31 +63,29 @@ class UpdateService : JobIntentService() {
 
             val retrofit = Retrofit.Builder().baseUrl(baseUrl).addConverterFactory(GsonConverterFactory.create()).build()
             val call = retrofit.create(DataService::class.java).getTimes(latitude, longitude)
+            call.enqueue(this)
+        }
+    }
 
-            call.enqueue(object : Callback<ApiResponse> {
-                override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
-                    loadCache()
-                    Log.d(tag, "Failed to retrieve data from API", t)
+    override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+        loadCache()
+        Log.d(tag, "Failed to retrieve data from API", t)
+    }
+
+    override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+        if (response.code() == 200 && response.body()?.status.equals("OK")) {
+            response.body()?.results?.let {
+                if (it.sunrise == null || it.sunset == null) {
+                    return
                 }
 
-                override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
-                    if (response.code() == 200 && response.body()?.status.equals("OK")) {
-                        response.body()?.results?.let {
-                            if (it.sunrise == null || it.sunset == null) {
-                                return
-                            }
-
-                            cacheData(it.sunrise, it.sunset)
-                            updateWidgets(it.sunrise, it.sunset)
-                            Log.i(tag, "API data retrieved, updating widgets")
-                        }
-                    } else {
-                        loadCache()
-                        Log.d(tag, "Returned response code " + response.code() + " and status " + response.body()?.status)
-                    }
-                }
-
-            })
+                cacheData(it.sunrise, it.sunset)
+                updateWidgets(it.sunrise, it.sunset)
+                Log.i(tag, "API data retrieved, updating widgets")
+            }
+        } else {
+            loadCache()
+            Log.d(tag, "Returned response code " + response.code() + " and status " + response.body()?.status)
         }
     }
 
@@ -121,6 +117,9 @@ class UpdateService : JobIntentService() {
         }
     }
 
+    /**
+     * Saves data to shared preferences
+     */
     private fun cacheData(sunrise: String, sunset: String) {
         val editor = prefs.edit()
 
@@ -129,10 +128,13 @@ class UpdateService : JobIntentService() {
         editor.apply()
     }
 
+    /**
+     * Loads data from shared preferences
+     */
     private fun loadCache() {
         if (prefs.contains(PREFS_SUNRISE) && prefs.contains(PREFS_SUNSET)) {
-            val sunrise = prefs.getString(PREFS_SUNRISE, PREFS_SUNRISE_DEFAULT)
-            val sunset = prefs.getString(PREFS_SUNSET, PREFS_SUNSET_DEFAULT)
+            val sunrise = prefs.getString(PREFS_SUNRISE, null)
+            val sunset = prefs.getString(PREFS_SUNSET, null)
 
             if (sunrise != null && sunset != null)
                 updateWidgets(sunrise, sunset)
