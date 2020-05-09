@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if(item.itemId == R.id.useMap) {
+        if (item.itemId == R.id.useMap) {
             viewModel.useMapClicked()
         }
 
@@ -178,12 +178,10 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updateWidgets() {
         val widgetIds = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, SunWidgetProvider::class.java))
-        val bundle = Bundle()
-        bundle.putIntArray("widgetIds", widgetIds)
-
-        val intent = Intent(this, UpdateService::class.java)
-        intent.putExtras(bundle)
-        UpdateService.enqueueWork(this, intent)
+        val intent = Intent(this, SunWidgetProvider::class.java)
+        intent.action = SunWidgetProvider.ACTION_RUN_UPDATE
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
+        sendBroadcast(intent)
     }
 
     /**

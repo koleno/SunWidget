@@ -1,9 +1,7 @@
 <resources>
     <string name="app_name">SunWidget</string>
-    <string name="title_activity_main">SunWidget</string>
     <string name="sunrise">Sunrise: </string>
     <string name="sunset">Sunset: </string>
-    <string name="not_available">Not Available</string>
     <string name="no_location">Set your location.</string>
     <string name="permissions_dialog_title">Permissions</string>
     <string name="permissions_dialog_message">Do you want to use maps and your gps to set your location (requires additional permissions)?</string>
@@ -22,18 +20,15 @@
     <string name="ok">OK</string>
     <string name="attribution">Data\u00A0from <a href="http://sunrise-sunset.org">sunrise\u2011sunset.org</a></string>
     <string name="map_attribution">Maps\u00A0by <a href="http://openstreetmap.org">OpenStreetMap.org</a></string>
-    <string name="enter_location_hint">Enter Location</string>
-    <string name="search_button">Search</string>
     <string name="title_main">Choose Your Location</string>
-    <string name="location_unavailable">Location is not available. Choose your location manually on the map.</string>
     <string name="current_location">Current Location</string>
     <string name="coordinates_saved">Location has been saved.</string>
     <string name="location_enable">Location not available. Enable location services.</string>
     <string name="success_dialog_title">Your location has been saved!</string>
     <string name="success_dialog_message">This location will be used for all \'SunWidget\' widgets on your home screen.</string>
-    <string name="success_dialog_button">OK</string>
     <string name="location_marker">Location marker</string>
     <string name="refresh">Refresh</string>
     <string name="loading">Loading\u2026</string>
     <string name="use_map">Use map</string>
+    <string name="no_internet">No internet</string>
 </resources>

@@ -2,7 +2,6 @@ package xyz.koleno.sunwidget
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.Resources
 import android.location.Criteria
 import android.location.Location
@@ -27,11 +26,11 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     val action = MutableLiveData<Action>()
     val message = MutableLiveData<String>()
     val dialog = MutableLiveData<DialogData>()
-    val location = MutableLiveData<LocationData>()
+    val location = MutableLiveData<PrefHelper.LocationData>()
     val locationActive = MutableLiveData<Boolean>(false)
 
     private val resources: Resources = application.resources
-    private val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
+    private val prefs: PrefHelper = PrefHelper(PreferenceManager.getDefaultSharedPreferences(application))
     private val locMgr: LocationManager = application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
     fun init(permGranted: Boolean, openedFromWidget: Boolean) {
@@ -43,15 +42,16 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
             } else { // permissions where not granted by user
                 action.postValue(Action.LOAD_MIN_CONTENT)
                 message.postValue(resources.getString(R.string.permission_denied))
-                location.postValue(getStoredLocation())
+                location.postValue(prefs.loadLocation())
             }
         } else { // permissions granted, load full content with map
             action.postValue(Action.LOAD_FULL_CONTENT)
-            val stored = getStoredLocation()
-            location.postValue(getStoredLocation())
 
-            // if no location was loaded, try to find current location
-            if (stored == null) {
+            if (prefs.hasLocation()) {
+                val stored = prefs.loadLocation()
+                location.postValue(stored)
+            } else {
+                // if no location was loaded, try to find current location
                 startLocationService()
             }
         }
@@ -87,7 +87,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
 
                 // display last known location
                 lastKnownLocation?.let {
-                    this.location.postValue(LocationData(it.latitude, it.longitude))
+                    this.location.postValue(PrefHelper.LocationData(it.latitude, it.longitude))
                 }
 
                 // register for location updates
@@ -107,18 +107,6 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
-     * Retrieves stored location from shared preferences or returns default
-     */
-    private fun getStoredLocation(): LocationData? {
-        if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
-            return LocationData(prefs.getFloat(PREFS_LATITUDE, 0f).toDouble(),
-                    prefs.getFloat(PREFS_LONGITUDE, 0f).toDouble())
-        }
-
-        return null
-    }
-
-    /**
      * Saves coordinates to shared preferences
      */
     fun saveCoordinates(latitude: Float?, longitude: Float?) {
@@ -127,12 +115,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
             return
         }
 
-        val editor = prefs.edit()
-
-        editor.putFloat(PREFS_LATITUDE, latitude)
-        editor.putFloat(PREFS_LONGITUDE, longitude)
-        editor.apply()
-
+        prefs.saveLocation(latitude, longitude)
 
         if (openedFromWidget) {
             message.postValue(resources.getString(R.string.coordinates_saved))
@@ -166,7 +149,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
 
     override fun onLocationChanged(location: Location?) {
         location?.let {
-            this.location.postValue(LocationData(it.latitude, it.longitude))
+            this.location.postValue(PrefHelper.LocationData(it.latitude, it.longitude))
 
             if (it.accuracy < LOCATION_ACCURACY) { // stop service if high enough accuracy is achieved
                 stopLocationService()
@@ -184,11 +167,8 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     data class DialogData(val title: String, val message: String)
-    data class LocationData(val latitude: Double, val longitude: Double)
 
     companion object {
-        const val PREFS_LONGITUDE = "longitude"
-        const val PREFS_LATITUDE = "latitude"
         private const val LOCATION_ACCURACY = 10f
     }
 

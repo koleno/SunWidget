@@ -8,6 +8,6 @@ import xyz.koleno.sunwidget.api.json.ApiResponse
 interface DataService {
 
     @GET("json?formatted=0")
-    fun getTimes(@Query("lat") latitude: Float, @Query("lng") longitude: Float): Call<ApiResponse>
+    fun getTimes(@Query("lat") latitude: Double, @Query("lng") longitude: Double): Call<ApiResponse>
 
 }
