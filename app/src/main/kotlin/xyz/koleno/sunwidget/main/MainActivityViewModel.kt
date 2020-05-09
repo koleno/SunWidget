@@ -35,8 +35,13 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     private val prefs: PrefHelper = PrefHelper(PreferenceManager.getDefaultSharedPreferences(application))
     private val locMgr: LocationManager = application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-    fun init(permGranted: Boolean, openedFromWidget: Boolean) {
+    fun init(permGranted: Boolean, openedFromWidget: Boolean, hasActiveWidgets: Boolean) {
         this.openedFromWidget = openedFromWidget
+
+        if(!hasActiveWidgets) {
+            dialog.postValue(DialogData(resources.getString(R.string.no_widgets_dialog_title), resources.getString(R.string.no_widgets_dialog_message), true))
+            return
+        }
 
         if (!permGranted) {
             if (!permissionRequested) { // ask for permissions
@@ -168,7 +173,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     override fun onProviderDisabled(provider: String?) {
     }
 
-    data class DialogData(val title: String, val message: String)
+    data class DialogData(val title: String, val message: String, val closeOnDismiss: Boolean = false)
 
     companion object {
         private const val LOCATION_ACCURACY = 10f

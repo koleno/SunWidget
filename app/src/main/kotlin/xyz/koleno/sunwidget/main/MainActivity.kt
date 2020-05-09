@@ -80,11 +80,16 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.dialog.observe(this, Observer {
-            AlertDialog.Builder(this)
+            val builder = AlertDialog.Builder(this)
                     .setTitle(it.title)
                     .setMessage(it.message)
                     .setPositiveButton(R.string.ok, null)
-                    .show()
+
+            if (it.closeOnDismiss) {
+                builder.setOnDismissListener { finish() }
+            }
+
+            builder.show()
         })
 
         viewModel.location.observe(this, Observer {
@@ -98,7 +103,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        viewModel.init(checkWritePermission() && checkLocationPermission(), openedFromWidget())
+        viewModel.init(checkWritePermission() && checkLocationPermission(), openedFromWidget(), hasActiveWidgets())
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -189,7 +194,7 @@ class MainActivity : AppCompatActivity() {
                 .setTitle(R.string.permissions_dialog_title)
                 .setMessage(R.string.permissions_dialog_message)
                 .setPositiveButton(R.string.permissions_dialog_button) { _, _ -> ActivityCompat.requestPermissions(this@MainActivity, permissions, PERMISSIONS) }
-                .setNegativeButton(R.string.permissions_dialog_button_no) { _, _ -> viewModel.init(false, openedFromWidget()) }
+                .setNegativeButton(R.string.permissions_dialog_button_no) { _, _ -> viewModel.init(false, openedFromWidget(), hasActiveWidgets()) }
                 .show()
     }
 
@@ -205,9 +210,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (granted) {
-                viewModel.init(true, openedFromWidget())
+                viewModel.init(true, openedFromWidget(), hasActiveWidgets())
             } else {
-                viewModel.init(false, openedFromWidget())
+                viewModel.init(false, openedFromWidget(), hasActiveWidgets())
             }
         }
     }
@@ -232,6 +237,17 @@ class MainActivity : AppCompatActivity() {
     private fun openedFromWidget(): Boolean {
         val extras = intent.extras
         return extras != null && extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID) != AppWidgetManager.INVALID_APPWIDGET_ID
+    }
+
+    /**
+     * Checks if there are any active widgets
+     */
+    private fun hasActiveWidgets(): Boolean {
+        val widgetIds = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, SunWidgetProvider::class.java))
+        if (widgetIds != null && widgetIds.isNotEmpty()) {
+            return true
+        }
+        return false
     }
 
     companion object {

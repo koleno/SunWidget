@@ -17,6 +17,8 @@
     </string>
     <string name="empty_dialog_title">Warning</string>
     <string name="empty_dialog_message">Latitude or longitude values cannot be empty.</string>
+    <string name="no_widgets_dialog_title">Warning</string>
+    <string name="no_widgets_dialog_message">There are currently no SunWidget widgets on your home screen. Please, go to your home screen and add them.</string>
     <string name="ok">OK</string>
     <string name="attribution">Data\u00A0from <a href="http://sunrise-sunset.org">sunrise\u2011sunset.org</a></string>
     <string name="map_attribution">Maps\u00A0by <a href="http://openstreetmap.org">OpenStreetMap.org</a></string>
