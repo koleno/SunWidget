@@ -13,6 +13,10 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LATITUDE
+import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LATITUDE_DEFAULT
+import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LONGITUDE
+import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LONGITUDE_DEFAULT
 import xyz.koleno.sunwidget.api.DataService
 import xyz.koleno.sunwidget.api.json.ApiResponse
 import java.text.DateFormat
@@ -35,13 +39,19 @@ class UpdateService : JobIntentService() {
     private var longitude: Float = 0.0f
     private var latitude: Float = 0.0f
 
-    /**
-     * Convenience method for enqueuing work in to this service.
-     */
     companion object {
+        /**
+         * Convenience method for enqueuing work in to this service.
+         */
         fun enqueueWork(context: Context, work: Intent) {
             enqueueWork(context, UpdateService::class.java, 1000, work)
         }
+
+        const val PREFS_SUNRISE = "sunrise"
+        const val PREFS_SUNSET = "sunset"
+
+        const val PREFS_SUNRISE_DEFAULT = "2015-05-21T05:05:35+00:00"
+        const val PREFS_SUNSET_DEFAULT = "2015-05-21T19:22:59+00:00"
     }
 
     override fun onHandleWork(intent: Intent) {
@@ -50,8 +60,8 @@ class UpdateService : JobIntentService() {
             manager = AppWidgetManager.getInstance(this.applicationContext)
             prefs = PreferenceManager.getDefaultSharedPreferences(this.applicationContext)
             widgetIds = intent.getIntArrayExtra("widgetIds")
-            longitude = prefs.getFloat(MainActivity.PREFS_LONGITUDE, MainActivity.PREFS_LONGITUDE_DEFAULT)
-            latitude = prefs.getFloat(MainActivity.PREFS_LATITUDE, MainActivity.PREFS_LATITUDE_DEFAULT)
+            longitude = prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT.toFloat())
+            latitude = prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT.toFloat())
 
             val retrofit = Retrofit.Builder().baseUrl(baseUrl).addConverterFactory(GsonConverterFactory.create()).build()
             val call = retrofit.create(DataService::class.java).getTimes(latitude, longitude)
@@ -114,15 +124,15 @@ class UpdateService : JobIntentService() {
     private fun cacheData(sunrise: String, sunset: String) {
         val editor = prefs.edit()
 
-        editor.putString(MainActivity.PREFS_SUNRISE, sunrise)
-        editor.putString(MainActivity.PREFS_SUNSET, sunset)
+        editor.putString(PREFS_SUNRISE, sunrise)
+        editor.putString(PREFS_SUNSET, sunset)
         editor.apply()
     }
 
     private fun loadCache() {
-        if (prefs.contains(MainActivity.PREFS_SUNRISE) && prefs.contains(MainActivity.PREFS_SUNSET)) {
-            val sunrise = prefs.getString(MainActivity.PREFS_SUNRISE, MainActivity.PREFS_SUNRISE_DEFAULT)
-            val sunset = prefs.getString(MainActivity.PREFS_SUNSET, MainActivity.PREFS_SUNSET_DEFAULT)
+        if (prefs.contains(PREFS_SUNRISE) && prefs.contains(PREFS_SUNSET)) {
+            val sunrise = prefs.getString(PREFS_SUNRISE, PREFS_SUNRISE_DEFAULT)
+            val sunset = prefs.getString(PREFS_SUNSET, PREFS_SUNSET_DEFAULT)
 
             if (sunrise != null && sunset != null)
                 updateWidgets(sunrise, sunset)

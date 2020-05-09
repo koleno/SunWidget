@@ -4,13 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -19,6 +15,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main_full.*
@@ -31,41 +29,85 @@ import org.osmdroid.views.CustomZoomButtonsController
  * Main activity
  * @author Dusan Koleno
  */
-class MainActivity : AppCompatActivity(), LocationListener {
+@Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var prefs: SharedPreferences
-    private lateinit var locMgr: LocationManager
+    private lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
-        prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        locMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        loadContentForPermissions()
+        viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
+
+        viewModel.action.observe(this, Observer { action ->
+            when (action) {
+                MainActivityViewModel.Action.REQUEST_PERM -> {
+                    showPermissionsDialog(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION))
+                }
+                MainActivityViewModel.Action.LOAD_FULL_CONTENT -> {
+                    loadFullContent()
+                }
+                MainActivityViewModel.Action.LOAD_MIN_CONTENT -> {
+                    loadMinContent()
+                }
+                MainActivityViewModel.Action.UPDATE_WIDGETS -> {
+                    notifyWidgets()
+                }
+                MainActivityViewModel.Action.UPDATE_FINISH -> {
+                    notifyWidgets()
+
+                    val widgetId = intent.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+                    val resultValue = Intent()
+                    resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                    setResult(Activity.RESULT_OK, resultValue)
+                    finish()
+                }
+            }
+        })
+
+        viewModel.locationActive.observe(this, Observer {
+            if (it) {
+                startButtonAnimation()
+            } else {
+                stopButtonAnimation()
+            }
+        })
+
+        viewModel.message.observe(this, Observer {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+        })
+
+        viewModel.dialog.observe(this, Observer {
+            AlertDialog.Builder(this)
+                    .setTitle(it.title)
+                    .setMessage(it.message)
+                    .setPositiveButton(R.string.ok, null)
+                    .show()
+        })
+
+        viewModel.location.observe(this, Observer {
+            if (fullLayout.visibility == View.VISIBLE) {
+                map.controller.setCenter(GeoPoint(it.latitude, it.longitude))
+            } else {
+                edit_text_longitude.setText(it.longitude.toString())
+                edit_text_latitude.setText(it.latitude.toString())
+            }
+        })
+
+        viewModel.init(checkWritePermission() && checkLocationPermission(), openedFromWidget())
     }
 
     override fun onPause() {
         super.onPause()
-        stopLocation()
-    }
-
-    /**
-     * Checks permissions for writing and accessing location and loads content accordingly
-     * Full layout is loaded only if there is a permission to write (for osm maps) and access location
-     */
-    private fun loadContentForPermissions() {
-        if (checkWritePermission() != PackageManager.PERMISSION_GRANTED || checkLocationPermission() != PackageManager.PERMISSION_GRANTED) { // check permissions
-            showPermissionsDialog(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION))
-        } else {
-            loadFullContent()
-        }
+        viewModel.pause()
     }
 
     /**
      * Loads map and other content in case the permissions are OK
      */
     private fun loadFullContent() {
+        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
+
         fullLayout.visibility = View.VISIBLE
         minLayout.visibility = View.GONE
 
@@ -74,93 +116,12 @@ class MainActivity : AppCompatActivity(), LocationListener {
         map.isTilesScaledToDpi = true
         map.controller.setZoom(ZOOM_DEFAULT)
 
-        button_location.setOnClickListener { locationButtonClicked() }
+        button_location.setOnClickListener { viewModel.locationButtonClicked() }
 
         button_save.setOnClickListener {
             val center = map.mapCenter as GeoPoint
-            saveCoordinates(center.latitude.toFloat(), center.longitude.toFloat())
+            viewModel.saveCoordinates(center.latitude.toFloat(), center.longitude.toFloat())
         }
-
-        // check preferences and load coordinates from them
-        if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
-            setMapCenter(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toDouble(), prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toDouble())
-        } else { // no preferences, load current location
-            setMapCenter(0.0, 0.0)
-            setLocation()
-        }
-    }
-
-    /**
-     * Toggles location updates
-     */
-    private fun locationButtonClicked() {
-        if (button_location.animation != null) { /// button is animated and hence location is being updated
-            stopLocation()
-        } else {
-            setLocation()
-        }
-    }
-
-    /**
-     * Gets location and shows it on the map
-     */
-    private fun setLocation() {
-        // check permissions
-        if (checkLocationPermission() == PackageManager.PERMISSION_GRANTED) {
-            startButtonAnimation()
-
-            // check location services
-            val network = locMgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-            val gps = locMgr.isProviderEnabled(LocationManager.GPS_PROVIDER)
-
-            var lastKnownLocation: Location? = null
-
-            if (!network && !gps) {
-                Toast.makeText(this, R.string.location_enable, Toast.LENGTH_SHORT).show()
-            } else {
-                lastKnownLocation = if (gps) { // gps location
-                    locMgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0f, this)
-                    locMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                } else { // network location
-                    locMgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10, 0f, this)
-                    locMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                }
-
-            }
-
-            // display last known location right away
-            if (lastKnownLocation != null) {
-                setMapCenter(lastKnownLocation)
-            }
-        }
-    }
-
-    /**
-     * Stops location updates
-     */
-    private fun stopLocation() {
-        locMgr.removeUpdates(this)
-        stopButtonAnimation()
-    }
-
-    /**
-     * Sets map to particular location
-     * @param loc location
-     */
-    private fun setMapCenter(loc: Location?) {
-        if (loc != null) {
-            setMapCenter(loc.latitude, loc.longitude)
-        }
-    }
-
-    /**
-     * Sets map to particular location
-     *
-     * @param latitude
-     * @param longitude
-     */
-    private fun setMapCenter(latitude: Double, longitude: Double) {
-        map.controller.setCenter(GeoPoint(latitude, longitude))
     }
 
     /**
@@ -170,70 +131,24 @@ class MainActivity : AppCompatActivity(), LocationListener {
         fullLayout.visibility = View.GONE
         minLayout.visibility = View.VISIBLE
 
-        // check preferences and load them
-        if (prefs.contains(PREFS_LONGITUDE)) {
-            edit_text_longitude.setText(prefs.getFloat(PREFS_LONGITUDE, PREFS_LONGITUDE_DEFAULT).toString())
-        }
-
-        if (prefs.contains(PREFS_LATITUDE)) {
-            edit_text_latitude.setText(prefs.getFloat(PREFS_LATITUDE, PREFS_LATITUDE_DEFAULT).toString())
-        }
-
         button.setOnClickListener {
-            if (edit_text_longitude.text.toString().isEmpty() || edit_text_latitude.text.toString().isEmpty()) {
-                showEmptyDialog()
-            } else {
-                saveCoordinates(java.lang.Float.valueOf(edit_text_latitude.text.toString()), java.lang.Float.valueOf(edit_text_longitude.text.toString()))
-            }
+            viewModel.saveCoordinates(edit_text_latitude.text.toString().toFloatOrNull(), edit_text_longitude.text.toString().toFloatOrNull())
         }
     }
 
-    /**
-     * Shows warning about empty coordinates provided
-     */
-    private fun showEmptyDialog() {
-        AlertDialog.Builder(this)
-                .setTitle(R.string.empty_dialog_title)
-                .setMessage(R.string.empty_dialog_message)
-                .setPositiveButton(R.string.empty_dialog_button, null)
-                .show()
-    }
 
-    private fun showSaveSuccessDialog() {
-        AlertDialog.Builder(this)
-                .setTitle(R.string.success_dialog_title)
-                .setMessage(R.string.success_dialog_message)
-                .setPositiveButton(R.string.success_dialog_button, null)
-                .show()
+    /**
+     * Starts button animation
+     */
+    private fun startButtonAnimation() {
+        button_location.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
     }
 
     /**
-     * Saves coordinates to the shared preferences
-     * @param latitude
-     * @param longitude
+     * Stops button animation
      */
-    private fun saveCoordinates(latitude: Float, longitude: Float) {
-        val editor = prefs.edit()
-
-        editor.putFloat(PREFS_LATITUDE, latitude)
-        editor.putFloat(PREFS_LONGITUDE, longitude)
-        editor.apply()
-
-        notifyWidgets()
-
-        // check if the activity was opened directly from widget, if yes, then close activity on save and notify widget
-        val extras = intent.extras
-        if (extras != null && extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID) != AppWidgetManager.INVALID_APPWIDGET_ID) {
-            val widgetId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-            Toast.makeText(this, R.string.coordinates_saved, Toast.LENGTH_SHORT).show()
-
-            val resultValue = Intent()
-            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-            setResult(Activity.RESULT_OK, resultValue)
-            finish()
-        } else {
-            showSaveSuccessDialog()
-        }
+    private fun stopButtonAnimation() {
+        button_location.clearAnimation()
     }
 
     /**
@@ -251,45 +166,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     /**
      * Shows dialog that requests permissions
-     * @param permissions
      */
     private fun showPermissionsDialog(permissions: Array<String>) {
         AlertDialog.Builder(this)
                 .setTitle(R.string.permissions_dialog_title)
                 .setMessage(R.string.permissions_dialog_message)
                 .setPositiveButton(R.string.permissions_dialog_button) { _, _ -> ActivityCompat.requestPermissions(this@MainActivity, permissions, PERMISSIONS) }
-                .setNegativeButton(R.string.permissions_dialog_button_no) { _, _ -> loadMinContent() }
+                .setNegativeButton(R.string.permissions_dialog_button_no) { _, _ -> viewModel.init(false, openedFromWidget()) }
                 .show()
-    }
-
-    /**
-     * Checks write permission
-     * @return flag indicating permission status (e.g. PERMISSION_GRANTED)
-     */
-    private fun checkWritePermission(): Int {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-
-    /**
-     * Checks location permission
-     * @return flag indicating permission status (e.g. PERMISSION_GRANTED)
-     */
-    private fun checkLocationPermission(): Int {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-    }
-
-    /**
-     * Starts button animation
-     */
-    private fun startButtonAnimation() {
-        button_location.startAnimation(AnimationUtils.loadAnimation(this, R.anim.animation_button_location))
-    }
-
-    /**
-     * Stops button animation
-     */
-    private fun stopButtonAnimation() {
-        button_location.clearAnimation()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -304,43 +188,37 @@ class MainActivity : AppCompatActivity(), LocationListener {
             }
 
             if (granted) {
-                loadFullContent()
+                viewModel.init(true, openedFromWidget())
             } else {
-                Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show()
-                loadMinContent()
+                viewModel.init(false, openedFromWidget())
             }
         }
     }
 
-    override fun onLocationChanged(location: Location) {
-        setMapCenter(location)
-
-        if (location.accuracy < LOCATION_ACCURACY) {
-            stopLocation()
-        }
+    /**
+     * Checks if write permission for maps was granted
+     */
+    private fun checkWritePermission(): Boolean {
+        return PERMISSION_GRANTED == ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
 
-    override fun onStatusChanged(s: String, i: Int, bundle: Bundle) {}
+    /**
+     * Checks if location permission was granted
+     */
+    private fun checkLocationPermission(): Boolean {
+        return PERMISSION_GRANTED == ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+    }
 
-    override fun onProviderEnabled(s: String) {}
-
-    override fun onProviderDisabled(s: String) {}
+    /**
+     * Checks if app was opened from widget
+     */
+    private fun openedFromWidget(): Boolean {
+        val extras = intent.extras
+        return extras != null && extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID) != AppWidgetManager.INVALID_APPWIDGET_ID
+    }
 
     companion object {
-
         private const val PERMISSIONS = 1
-
         private const val ZOOM_DEFAULT = 13.0
-        private const val LOCATION_ACCURACY = 10f
-
-        const val PREFS_LONGITUDE = "longitude"
-        const val PREFS_LATITUDE = "latitude"
-        const val PREFS_SUNRISE = "sunrise"
-        const val PREFS_SUNSET = "sunset"
-
-        const val PREFS_LONGITUDE_DEFAULT = 0.0f
-        const val PREFS_LATITUDE_DEFAULT = 0.0f
-        const val PREFS_SUNRISE_DEFAULT = "2015-05-21T05:05:35+00:00"
-        const val PREFS_SUNSET_DEFAULT = "2015-05-21T19:22:59+00:00"
     }
 }

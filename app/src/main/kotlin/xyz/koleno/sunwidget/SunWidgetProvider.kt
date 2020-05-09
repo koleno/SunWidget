@@ -9,6 +9,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.preference.PreferenceManager
 import android.widget.RemoteViews
+import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LATITUDE
+import xyz.koleno.sunwidget.MainActivityViewModel.Companion.PREFS_LONGITUDE
 
 /**
  * Controls updates of the widget
@@ -26,7 +28,7 @@ class SunWidgetProvider : AppWidgetProvider() {
         appWidgetManager.updateAppWidget(component, remoteViews)
 
         // start service if user's location is set
-        if (prefs.contains(MainActivity.PREFS_LONGITUDE) && prefs.contains(MainActivity.PREFS_LATITUDE)) {
+        if (prefs.contains(PREFS_LONGITUDE) && prefs.contains(PREFS_LATITUDE)) {
             val intent = Intent(context, UpdateService::class.java)
             val bundle = Bundle()
             bundle.putIntArray("widgetIds", appWidgetManager.getAppWidgetIds(component))
@@ -35,7 +37,7 @@ class SunWidgetProvider : AppWidgetProvider() {
             // start the update service
             UpdateService.enqueueWork(context, intent)
         } else {
-            coordsNotAvailable(context, appWidgetIds)
+            locationNotSet(context, appWidgetIds)
         }
     }
 
@@ -60,7 +62,7 @@ class SunWidgetProvider : AppWidgetProvider() {
      * @param context
      * @param appWidgetIds
      */
-    private fun coordsNotAvailable(context: Context, appWidgetIds: IntArray) {
+    private fun locationNotSet(context: Context, appWidgetIds: IntArray) {
         val manager = AppWidgetManager.getInstance(context.applicationContext)
         val remoteViews = RemoteViews(context.applicationContext.packageName, R.layout.sunwidget)
 
