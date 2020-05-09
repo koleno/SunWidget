@@ -4,7 +4,7 @@
     android:updatePeriodMillis="86400000"
     android:initialLayout="@layout/sunwidget"
     android:resizeMode="horizontal|vertical"
-    android:configure="xyz.koleno.sunwidget.MainActivity"
+    android:configure="xyz.koleno.sunwidget.main.MainActivity"
     android:previewImage="@drawable/widget_preview"
     android:widgetCategory="home_screen">
 </appwidget-provider>

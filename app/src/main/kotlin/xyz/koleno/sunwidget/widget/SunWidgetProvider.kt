@@ -1,4 +1,4 @@
-package xyz.koleno.sunwidget
+package xyz.koleno.sunwidget.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import androidx.preference.PreferenceManager
+import xyz.koleno.sunwidget.PrefHelper
+import xyz.koleno.sunwidget.R
 
 /**
  * Broadcast receiver that controls the widgets

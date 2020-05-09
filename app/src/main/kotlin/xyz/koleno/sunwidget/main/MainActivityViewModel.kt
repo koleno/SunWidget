@@ -1,4 +1,4 @@
-package xyz.koleno.sunwidget
+package xyz.koleno.sunwidget.main
 
 import android.app.Application
 import android.content.Context
@@ -11,6 +11,8 @@ import android.os.Bundle
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
+import xyz.koleno.sunwidget.PrefHelper
+import xyz.koleno.sunwidget.R
 
 /**
  * View model for the main activity

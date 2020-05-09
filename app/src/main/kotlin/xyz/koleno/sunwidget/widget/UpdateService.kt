@@ -1,4 +1,4 @@
-package xyz.koleno.sunwidget
+package xyz.koleno.sunwidget.widget
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
@@ -8,6 +8,8 @@ import androidx.core.app.JobIntentService
 import androidx.preference.PreferenceManager
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import xyz.koleno.sunwidget.BuildConfig
+import xyz.koleno.sunwidget.PrefHelper
 import xyz.koleno.sunwidget.api.DataService
 import java.net.HttpURLConnection
 import java.net.URL

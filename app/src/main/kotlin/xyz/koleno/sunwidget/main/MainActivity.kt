@@ -1,4 +1,4 @@
-package xyz.koleno.sunwidget
+package xyz.koleno.sunwidget.main
 
 import android.Manifest
 import android.app.Activity
@@ -24,6 +24,8 @@ import kotlinx.android.synthetic.main.activity_main_min.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
+import xyz.koleno.sunwidget.R
+import xyz.koleno.sunwidget.widget.SunWidgetProvider
 
 /**
  * Main activity
