@@ -3,8 +3,9 @@ Widget for Android that displays sunset/sunrise times. Also available in the [Go
 
 
 ## Screenshots
-![Screenshot](screenshot.png?raw=true "Screenshot")
-![Screenshot](screenshot2.png?raw=true "Screenshot")
+<img src="screenshot.png?raw=true" width="250" align="left">
+<img src="screenshot1.png?raw=true" width="250" align="left">
+<img src="screenshot2.png?raw=true" width="250">
 
 ## License
 GNU General Public License v2.0 
