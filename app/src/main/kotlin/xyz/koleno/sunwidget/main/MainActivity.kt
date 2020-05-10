@@ -35,7 +35,7 @@ import xyz.koleno.sunwidget.widget.SunWidgetProvider
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainActivityViewModel
-    private var menu: Menu? = null
+    private var useMapMenu: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,8 +108,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main, menu)
-        this.menu = menu
-
+        useMapMenu = menu?.findItem(R.id.useMap)
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -132,9 +131,6 @@ class MainActivity : AppCompatActivity() {
     private fun loadFullContent() {
         setContentView(R.layout.activity_main_full)
         Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
-
-        menu?.findItem(R.id.useMap)?.isVisible = false
-
         map.setMultiTouchControls(true) // zoom with fingers
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER) // zoom with buttons disabled
         map.isTilesScaledToDpi = true
@@ -146,6 +142,8 @@ class MainActivity : AppCompatActivity() {
             val center = map.mapCenter as GeoPoint
             viewModel.saveCoordinates(center.latitude.toFloat(), center.longitude.toFloat())
         }
+
+        useMapMenu?.isVisible = false
     }
 
     /**
@@ -153,11 +151,12 @@ class MainActivity : AppCompatActivity() {
      */
     private fun loadMinContent() {
         setContentView(R.layout.activity_main_min)
-        menu?.findItem(R.id.useMap)?.isVisible = true
 
         button.setOnClickListener {
             viewModel.saveCoordinates(edit_text_latitude.text.toString().toFloatOrNull(), edit_text_longitude.text.toString().toFloatOrNull())
         }
+
+        useMapMenu?.isVisible = true
     }
 
 

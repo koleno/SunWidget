@@ -3,6 +3,7 @@
 
     <item
         android:id="@+id/useMap"
+        android:visible="false"
         android:title="@string/use_map" />
 
 </menu>

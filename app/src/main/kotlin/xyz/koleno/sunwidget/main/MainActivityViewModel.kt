@@ -49,7 +49,10 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
             } else { // permissions where not granted by user
                 action.postValue(Action.LOAD_MIN_CONTENT)
                 message.postValue(resources.getString(R.string.permission_denied))
-                location.postValue(prefs.loadLocation())
+
+                if(prefs.hasLocation()) {
+                    location.postValue(prefs.loadLocation())
+                }
             }
         } else { // permissions granted, load full content with map
             action.postValue(Action.LOAD_FULL_CONTENT)
